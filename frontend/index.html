@@ -1,264 +1,618 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XAI Platform - Explainable AI for Regulated Industries</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
-    </script>
-    <style>
-        .gradient-bg { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #7c3aed 100%); }
-        .card-hover { transition: all 0.3s; }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
-        .bar-positive { background: linear-gradient(90deg, #10b981, #34d399); }
-        .bar-negative { background: linear-gradient(90deg, #ef4444, #f87171); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XAI Platform - Explainable AI for Regulated Industries</title>
+
+<!--
+  Zero external dependencies, by design.
+
+  This page previously loaded React, Babel and Tailwind from CDNs. That made the
+  whole UI fail closed - a blank page - whenever the network was unavailable,
+  which is the normal condition at a conference venue and in an air-gapped
+  compliance environment. Everything below is now inline vanilla JS and CSS, so
+  the app renders with the network cable pulled out.
+
+  The only optional remote asset is the Noto font link. If it is blocked the
+  browser falls back to system fonts and the page still reads correctly; no
+  behaviour depends on it.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari&family=Noto+Sans+Bengali&family=Noto+Sans+Tamil&family=Noto+Sans+Telugu&family=Noto+Sans+Kannada&family=Noto+Sans+Malayalam&family=Noto+Sans+Gujarati&family=Noto+Sans+Gurmukhi&family=Noto+Sans+Oriya&family=Noto+Sans+Ol+Chiki&family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#f8fafc; --panel:#ffffff; --border:#e2e8f0; --text:#0f172a; --muted:#64748b;
+  --accent:#4f46e5; --accent-hi:#4338ca; --violet:#7c3aed; --violet-hi:#6d28d9;
+  --good-bg:#ecfdf5; --good-br:#a7f3d0; --good-tx:#065f46; --good-bar:#10b981;
+  --warn-bg:#fffbeb; --warn-br:#fde68a; --warn-tx:#92400e;
+  --bad-bg:#fef2f2;  --bad-br:#fecaca;  --bad-tx:#991b1b;  --bad-bar:#ef4444;
+  --info-bg:#eef2ff; --info-br:#c7d2fe; --info-tx:#3730a3;
+  --sky-bg:#f0f9ff;  --sky-br:#bae6fd;  --sky-tx:#075985;
+  --chip:#eef2ff; --chip-tx:#3730a3; --track:#eef1f5;
+  --head:linear-gradient(135deg,#1e3a5f 0%,#2563eb 55%,#7c3aed 100%);
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.05);
+}
+html[data-theme="dark"] {
+  --bg:#020818; --panel:#0b1220; --border:#1e293b; --text:#e2e8f0; --muted:#94a3b8;
+  --accent:#6366f1; --accent-hi:#4f46e5; --violet:#8b5cf6; --violet-hi:#7c3aed;
+  --good-bg:rgba(16,185,129,.10); --good-br:rgba(16,185,129,.30); --good-tx:#6ee7b7; --good-bar:#10b981;
+  --warn-bg:rgba(245,158,11,.10); --warn-br:rgba(245,158,11,.30); --warn-tx:#fcd34d;
+  --bad-bg:rgba(244,63,94,.10);   --bad-br:rgba(244,63,94,.30);   --bad-tx:#fda4af; --bad-bar:#f43f5e;
+  --info-bg:rgba(99,102,241,.10); --info-br:rgba(99,102,241,.28); --info-tx:#a5b4fc;
+  --sky-bg:rgba(14,165,233,.10);  --sky-br:rgba(14,165,233,.28);  --sky-tx:#7dd3fc;
+  --chip:rgba(99,102,241,.18); --chip-tx:#a5b4fc; --track:#1e293b;
+  --head:linear-gradient(135deg,#070d18 0%,#15243d 45%,#3b1d5e 100%);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Devanagari","Noto Sans Bengali","Noto Sans Tamil","Noto Sans Telugu","Noto Sans Kannada","Noto Sans Malayalam","Noto Sans Gujarati","Noto Sans Gurmukhi","Noto Sans Oriya","Noto Sans Ol Chiki",sans-serif;
+  -webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
+[lang="ur"],[lang="ks"]{font-family:"Noto Nastaliq Urdu",system-ui,serif;line-height:2.1}
+[lang="sd"]{font-family:"Noto Nastaliq Urdu",system-ui,sans-serif;line-height:1.9}
+[lang="sat"]{font-family:"Noto Sans Ol Chiki",system-ui,sans-serif}
+
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+header.top{background:var(--head);color:#fff;box-shadow:var(--shadow)}
+.head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;padding:24px 0}
+h1{font-size:1.7rem;margin:0;font-weight:700}
+.sub{color:#dbeafe;font-size:.87rem;margin:4px 0 0}
+.chips{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.chip{background:rgba(255,255,255,.2);border-radius:5px;padding:4px 8px;font-size:.72rem;font-weight:600}
+.icon-btn{background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:8px;padding:7px 11px;font-size:.95rem;cursor:pointer}
+.icon-btn:hover{background:rgba(255,255,255,.28)}
+
+main{padding:28px 0 8px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:22px;margin-bottom:18px}
+h2.sec{font-size:1.06rem;margin:0 0 14px;font-weight:650}
+h3.sub-h{font-size:.83rem;margin:18px 0 8px;font-weight:650}
+.lbl{display:block;font-size:.72rem;color:var(--muted);margin-bottom:4px;font-weight:500}
+.muted{color:var(--muted)}
+
+.grid{display:grid;gap:14px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:820px){.g3,.g4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.g3,.g4,.g2{grid-template-columns:1fr}}
+
+.dcard{text-align:start;background:var(--panel);border:2px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;font:inherit;color:inherit;transition:.18s}
+.dcard:hover{border-color:var(--accent);transform:translateY(-2px)}
+.dcard[aria-pressed="true"]{border-color:var(--accent);background:var(--info-bg)}
+.dcard .emoji{font-size:1.8rem}
+.dcard .nm{font-weight:650;margin-top:6px}
+.dcard .rg{font-size:.74rem;color:var(--muted);margin-top:3px}
+.dcard .tag{display:inline-block;margin-top:10px;background:var(--chip);color:var(--chip-tx);border-radius:5px;padding:2px 7px;font-size:.7rem;font-weight:600}
+
+input,select{width:100%;padding:8px 10px;font:inherit;font-size:.86rem;border-radius:8px;
+  border:1px solid var(--border);background:var(--panel);color:var(--text)}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.btn{border:0;border-radius:8px;padding:11px 22px;font:inherit;font-weight:600;color:#fff;background:var(--accent);cursor:pointer;transition:.15s}
+.btn:hover:not(:disabled){background:var(--accent-hi)}
+.btn:disabled{background:var(--muted);cursor:not-allowed;opacity:.7}
+.btn.v{background:var(--violet)} .btn.v:hover:not(:disabled){background:var(--violet-hi)}
+.btn.ghost{background:var(--track);color:var(--text);padding:7px 13px;font-size:.82rem;font-weight:500}
+.row-end{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:16px;margin-top:6px}
+.row-end>*{flex:1 1 240px}
+.center{display:flex;justify-content:center;margin:18px 0}
+
+.box{border-radius:9px;border:1px solid var(--border);padding:11px;background:var(--track)}
+.box .k{font-size:.71rem;opacity:.72}
+.box .v{font-weight:700;margin-top:3px;word-break:break-word}
+.tone-good{background:var(--good-bg);border-color:var(--good-br);color:var(--good-tx)}
+.tone-warn{background:var(--warn-bg);border-color:var(--warn-br);color:var(--warn-tx)}
+.tone-bad{background:var(--bad-bg);border-color:var(--bad-br);color:var(--bad-tx)}
+.note{border-radius:9px;padding:13px;border:1px solid var(--info-br);background:var(--info-bg);color:var(--info-tx);margin-bottom:12px}
+.note .k{font-size:.72rem;font-weight:600;margin-bottom:4px;opacity:.85}
+.note .orig{font-size:.83rem;font-style:italic;opacity:.8;margin:7px 0 0}
+.warnbar{border-radius:9px;padding:11px;font-size:.85rem;border:1px solid var(--warn-br);background:var(--warn-bg);color:var(--warn-tx)}
+.errbar{border-radius:9px;padding:13px;font-size:.87rem;border:1px solid var(--bad-br);background:var(--bad-bg);color:var(--bad-tx);margin-bottom:16px}
+.pill{border-radius:999px;padding:5px 13px;font-size:.83rem;font-weight:700;border:1px solid}
+
+.bar-row{margin-bottom:14px}
+.bar-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:5px}
+.bar-name{font-size:.86rem;font-weight:500}
+.bar-rank{color:var(--muted);margin-inline-end:5px}
+.bar-val{font-size:.84rem;font-weight:700;font-variant-numeric:tabular-nums}
+.bar-val.pos{color:var(--good-bar)} .bar-val.neg{color:var(--bad-bar)}
+/* Flex `row` follows the writing direction, so the fill already starts at the
+   right in RTL. An explicit row-reverse here would double-flip it and push the
+   bar to the wrong edge. */
+.track{height:10px;border-radius:999px;background:var(--track);overflow:hidden;display:flex}
+.fill{height:100%;border-radius:999px;transition:width .5s ease}
+.fill.pos{background:var(--good-bar)} .fill.neg{background:var(--bad-bar)}
+.bar-exp{font-size:.76rem;color:var(--muted);margin:4px 0 0}
+
+.check{border-radius:9px;padding:11px;border:1px solid}
+.check .top{display:flex;gap:8px;align-items:center;font-size:.85rem;font-weight:600}
+.check .st{margin-inline-start:auto;font-size:.72rem;opacity:.75;font-weight:500}
+.check .crit{font-size:.75rem;opacity:.82;margin:5px 0 0;padding-inline-start:22px}
+.check .find{font-size:.75rem;font-weight:600;margin:6px 0 0;padding-inline-start:22px;color:var(--warn-tx)}
+.st-PASS{background:var(--good-bg);border-color:var(--good-br)}
+.st-REVIEW{background:var(--warn-bg);border-color:var(--warn-br)}
+.st-FAIL{background:var(--bad-bg);border-color:var(--bad-br)}
+.req{border-radius:9px;padding:11px;border:1px solid var(--sky-br);background:var(--sky-bg)}
+.req .k{font-size:.71rem;font-weight:700;color:var(--sky-tx);text-transform:uppercase;letter-spacing:.03em}
+.req .t{font-size:.84rem;margin:4px 0 0}
+ul.recs{list-style:none;margin:0;padding:14px;border-radius:9px;border:1px solid var(--warn-br);background:var(--warn-bg)}
+ul.recs li{font-size:.85rem;color:var(--warn-tx);margin-bottom:4px}
+ul.glist{list-style:none;margin:0;padding:0}
+ul.glist li{font-size:.85rem;color:var(--muted);margin-bottom:4px}
+ul.glist .tick{color:var(--good-bar);margin-inline-end:6px}
+.disc{font-size:.74rem;font-style:italic;color:var(--muted);margin:16px 0 0}
+.prov{font-size:.75rem;background:var(--track);color:var(--muted);border-radius:9px;padding:11px;margin-bottom:16px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem}
+.cov{font-size:.74rem;margin-top:7px}
+.cov.full{color:#6ee7b7}.cov.part{color:#fcd34d}.cov.none{color:#fda4af}
+footer{border-top:1px solid var(--border);margin-top:32px;padding:20px 0;text-align:center;color:var(--muted);font-size:.83rem}
+.fade{animation:fu .3s ease-out both}
+@keyframes fu{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+[hidden]{display:none !important}
+</style>
 </head>
-<body class="bg-gray-50 font-sans">
-    <div id="root"></div>
-    <script type="text/babel">
-const { useState } = React;
-const API = window.location.origin;
+<body>
+<header class="top">
+  <div class="wrap head-row">
+    <div>
+      <h1>&#128269; <span id="appTitle">XAI Platform</span></h1>
+      <p class="sub" id="appSub"></p>
+      <div id="covBadge" class="cov"></div>
+    </div>
+    <div class="chips">
+      <span class="chip">RBI</span><span class="chip">IRDAI</span>
+      <span class="chip">SEBI</span><span class="chip">IndiaAI</span>
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle colour theme">&#9728;&#65039;</button>
+    </div>
+  </div>
+</header>
 
-const LANGUAGES = { en:"English", hi:"हिन्दी (Hindi)", bn:"বাংলা (Bengali)", ta:"தமிழ் (Tamil)", te:"తెలుగు (Telugu)", mr:"मराठी (Marathi)", gu:"ગુજરાતી (Gujarati)", kn:"ಕನ್ನಡ (Kannada)", ml:"മലയാളം (Malayalam)", pa:"ਪੰਜਾਬੀ (Punjabi)", ur:"اردو (Urdu)" };
+<main class="wrap">
+  <h2 class="sec" id="domHeading">Select Decision Domain</h2>
+  <div class="grid g3" id="domains" style="margin-bottom:18px"></div>
 
-const DOMAINS = {
-    credit_scoring: { name:"Credit Scoring", regulator:"RBI", icon:"🏦", desc:"AI-based credit risk assessment for loan applications", sample: { annual_income:800000, credit_history_months:60, existing_loans:2, loan_amount_requested:500000, employment_years:5, monthly_expenses:35000, age:32, defaults_in_past:0 }},
-    insurance_underwriting: { name:"Insurance Underwriting", regulator:"IRDAI", icon:"🛡️", desc:"AI-driven insurance risk assessment and premium calculation", sample: { age:45, bmi:26.5, smoking_status:false, pre_existing_conditions:1, family_history_score:0.3, occupation_risk:"medium", coverage_amount:5000000 }},
-    healthcare: { name:"Healthcare Risk", regulator:"IndiaAI", icon:"🏥", desc:"AI-powered patient risk stratification", sample: { age:55, symptoms_severity:6.5, lab_results_abnormal:3, medical_history_score:0.4, vitals_risk_score:0.5, treatment_urgency:"moderate" }},
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px">
+      <h2 class="sec" style="margin:0" id="inputHeading">Input Parameters</h2>
+      <button class="btn ghost" id="sampleBtn">Load Sample</button>
+    </div>
+    <div class="grid g4" id="fields"></div>
+    <div class="row-end">
+      <div>
+        <label class="lbl" for="langSel" id="langLabel">Explanation Language</label>
+        <select id="langSel"></select>
+      </div>
+      <div><button class="btn" id="genBtn" style="width:100%">Generate Explanation</button></div>
+    </div>
+  </section>
+
+  <div id="err" class="errbar" dir="ltr" hidden></div>
+  <div id="result"></div>
+  <div id="report"></div>
+</main>
+
+<footer><div class="wrap"><p id="footNote"></p><p id="footMeta" style="font-size:.75rem"></p></div></footer>
+
+<script>
+/* ---------------------------------------------------------------- helpers */
+var API = window.location.origin;
+var THEME_KEY = 'xai-theme';
+
+/* Every value interpolated into markup is escaped. Translated strings and
+   regulator names are data, and must never be able to inject markup. */
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function pct(n) { return (Number(n) * 100).toFixed(1) + '%'; }
+function $(id) { return document.getElementById(id); }
+
+var DOMAIN_ICONS = { credit_scoring:'\uD83C\uDFE6', insurance_underwriting:'\uD83D\uDEE1', healthcare:'\uD83C\uDFE5' };
+var DOMAIN_ORDER = ['credit_scoring','insurance_underwriting','healthcare'];
+var CHOICES = { occupation_risk:['low','medium','high'], treatment_urgency:['routine','moderate','urgent'] };
+
+/* Tone is keyed on the stable decision code, never the translated label, so
+   colours stay correct in all 22 languages. */
+var TONE = {
+  APPROVED:'good', LOW_RISK_ROUTINE:'good', STANDARD_PREMIUM:'good',
+  REVIEW_REQUIRED:'warn', MODERATE_RISK_MONITORING:'warn', LOADED_PREMIUM:'warn',
+  REJECTED:'bad', DECLINED:'bad', HIGH_RISK_INTERVENTION:'bad'
 };
+var STATUS_ICON = { PASS:'\u2713', REVIEW:'\u26A0', FAIL:'\u2715' };
 
-function App() {
-    const [domain, setDomain] = useState('credit_scoring');
-    const [language, setLanguage] = useState('hi');
-    const [inputs, setInputs] = useState({...DOMAINS.credit_scoring.sample});
-    const [result, setResult] = useState(null);
-    const [report, setReport] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [rptLoading, setRptLoading] = useState(false);
+var state = { lang:'hi', catalog:null, ui:{}, domains:null, domainKey:'credit_scoring',
+              inputs:{}, result:null, report:null, busy:false, reportBusy:false };
 
-    const changeDomain = (d) => { setDomain(d); setInputs({...DOMAINS[d].sample}); setResult(null); setReport(null); };
+/* ------------------------------------------------------------------ theme */
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  $('themeBtn').innerHTML = dark ? '\u2600\uFE0F' : '\uD83C\uDF19';
+}
+function initTheme() {
+  var stored = null;
+  try { stored = localStorage.getItem(THEME_KEY); } catch (e) {}
+  var dark = stored ? stored === 'dark' : true;   // dark by default
+  applyTheme(dark);
+  return dark;
+}
+var isDark = initTheme();
+$('themeBtn').addEventListener('click', function () {
+  isDark = !isDark;
+  applyTheme(isDark);
+  try { localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light'); } catch (e) {}
+});
 
-    const generate = async () => {
-        setLoading(true); setResult(null); setReport(null);
-        try {
-            const res = await fetch(`${API}/api/explanations/generate`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ domain, language, regulator: DOMAINS[domain].regulator, input_data: inputs }) });
-            setResult(await res.json());
-        } catch(e) { alert('Error: '+e.message); }
-        setLoading(false);
-    };
-
-    const genReport = async (auditId) => {
-        setRptLoading(true); setReport(null);
-        try {
-            const res = await fetch(`${API}/api/reports/generate`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ explanation_id: auditId, domain, regulator: DOMAINS[domain].regulator, language }) });
-            setReport(await res.json());
-        } catch(e) { alert('Error: '+e.message); }
-        setRptLoading(false);
-    };
-
-    return (
-    <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="gradient-bg text-white shadow-xl">
-            <div className="max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold">🔍 XAI Platform</h1>
-                    <p className="text-blue-100 text-sm mt-1">Multilingual Explainable AI for Regulated Industries</p>
-                </div>
-                <div className="flex gap-2">
-                    {['RBI','IRDAI','SEBI','IndiaAI'].map(r=><span key={r} className="bg-white/20 rounded px-2 py-1 text-xs">{r}</span>)}
-                </div>
-            </div>
-        </header>
-
-        <main className="max-w-7xl mx-auto px-4 py-8">
-            {/* Domain Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                {Object.entries(DOMAINS).map(([k,d])=>(
-                    <div key={k} onClick={()=>changeDomain(k)} className={`card-hover cursor-pointer rounded-xl p-5 border-2 ${domain===k?'border-blue-500 bg-blue-50 shadow-lg':'border-gray-200 bg-white hover:border-blue-300'}`}>
-                        <div className="text-3xl mb-2">{d.icon}</div>
-                        <h3 className="font-semibold text-gray-800">{d.name}</h3>
-                        <p className="text-sm text-gray-500 mt-1">{d.desc}</p>
-                        <span className="mt-3 inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded">{d.regulator}</span>
-                    </div>
-                ))}
-            </div>
-
-            {/* Input Form */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">{DOMAINS[domain].icon} Input Parameters</h3>
-                    <button onClick={()=>setInputs({...DOMAINS[domain].sample})} className="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg">Load Sample</button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                    {Object.entries(inputs).map(([k,v])=>(
-                        <div key={k}>
-                            <label className="text-xs font-medium text-gray-600 block mb-1">{k.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</label>
-                            {typeof v==='boolean'?
-                                <select value={v.toString()} onChange={e=>setInputs(p=>({...p,[k]:e.target.value==='true'}))} className="w-full border rounded-lg px-3 py-2 text-sm"><option value="true">Yes</option><option value="false">No</option></select>
-                            : typeof v==='string'?
-                                <select value={v} onChange={e=>setInputs(p=>({...p,[k]:e.target.value}))} className="w-full border rounded-lg px-3 py-2 text-sm">
-                                    {k==='occupation_risk'&&['low','medium','high'].map(o=><option key={o}>{o}</option>)}
-                                    {k==='treatment_urgency'&&['routine','moderate','urgent'].map(o=><option key={o}>{o}</option>)}
-                                </select>
-                            : <input type="number" value={v} onChange={e=>setInputs(p=>({...p,[k]:parseFloat(e.target.value)||0}))} className="w-full border rounded-lg px-3 py-2 text-sm"/>
-                            }
-                        </div>
-                    ))}
-                </div>
-                <div className="flex items-end gap-4 border-t pt-4">
-                    <div className="flex-1">
-                        <label className="text-xs font-medium text-gray-600 block mb-1">Explanation Language</label>
-                        <select value={language} onChange={e=>setLanguage(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm">
-                            {Object.entries(LANGUAGES).map(([c,n])=><option key={c} value={c}>{n}</option>)}
-                        </select>
-                    </div>
-                    <button onClick={generate} disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2.5 px-6 rounded-lg">
-                        {loading?'⏳ Generating...':'🔍 Generate Explanation'}
-                    </button>
-                </div>
-            </div>
-
-            {/* Results */}
-            {result && !result.error && (
-            <div className="fade-in space-y-4">
-                {/* Decision */}
-                <div className="bg-white rounded-xl shadow-sm border p-6">
-                    <h3 className="text-lg font-semibold mb-4">📊 AI Decision & Explanation</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                        <div className={`rounded-lg p-3 border ${result.decision.includes('APPROVED')||result.decision.includes('LOW_RISK')||result.decision.includes('STANDARD')?'bg-green-50 border-green-200 text-green-800':result.decision.includes('REVIEW')||result.decision.includes('MODERATE')||result.decision.includes('LOADED')?'bg-yellow-50 border-yellow-200 text-yellow-800':'bg-red-50 border-red-200 text-red-800'}`}>
-                            <p className="text-xs opacity-75">Decision</p>
-                            <p className="font-bold">{result.decision.replace(/_/g,' ')}</p>
-                        </div>
-                        <div className="rounded-lg p-3 bg-blue-50 border border-blue-200">
-                            <p className="text-xs text-blue-600">Confidence</p>
-                            <p className="font-bold text-blue-800">{(result.confidence*100).toFixed(1)}%</p>
-                        </div>
-                        <div className="rounded-lg p-3 bg-purple-50 border border-purple-200">
-                            <p className="text-xs text-purple-600">Risk Score</p>
-                            <p className="font-bold text-purple-800">{(result.risk_score*100).toFixed(1)}%</p>
-                        </div>
-                        <div className="rounded-lg p-3 bg-gray-50 border">
-                            <p className="text-xs text-gray-600">Audit ID</p>
-                            <p className="font-bold text-xs mt-1">{result.audit_id}</p>
-                        </div>
-                    </div>
-
-                    <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-4">
-                        <p className="text-sm font-medium text-indigo-700 mb-1">📝 Explanation ({LANGUAGES[result.language]||result.language})</p>
-                        <p className="text-indigo-900 font-medium">{result.translated_summary}</p>
-                        {result.language!=='en'&&<p className="text-indigo-600 text-sm mt-2 italic">{result.summary_explanation}</p>}
-                    </div>
-
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                        <p className="text-sm text-amber-800">⚖️ {result.regulatory_compliance.compliance_note}</p>
-                    </div>
-                </div>
-
-                {/* Feature Chart */}
-                <div className="bg-white rounded-xl shadow-sm border p-6">
-                    <h3 className="text-lg font-semibold mb-4">📈 Feature Contributions (SHAP-like Analysis)</h3>
-                    <div className="space-y-3">
-                        {result.feature_contributions.map((c,i)=>{
-                            const maxAbs = Math.max(...result.feature_contributions.map(x=>Math.abs(x.contribution)));
-                            const w = Math.abs(c.contribution)/maxAbs*100;
-                            const pos = c.contribution_direction==='positive';
-                            return (
-                            <div key={i}>
-                                <div className="flex justify-between mb-1">
-                                    <span className="text-sm font-medium text-gray-700">#{c.importance_rank} {c.feature_name.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</span>
-                                    <span className={`text-sm font-bold ${pos?'text-green-600':'text-red-600'}`}>{pos?'+':''}{(c.contribution*100).toFixed(1)}%</span>
-                                </div>
-                                <div className="w-full bg-gray-100 rounded-full h-3">
-                                    <div className={`h-3 rounded-full ${pos?'bar-positive':'bar-negative'}`} style={{width:`${w}%`,transition:'width 0.7s'}}></div>
-                                </div>
-                                <p className="text-xs text-gray-500 mt-0.5">{c.translated_explanation}</p>
-                            </div>);
-                        })}
-                    </div>
-                </div>
-
-                {/* Report Button */}
-                <div className="flex justify-center">
-                    <button onClick={()=>genReport(result.audit_id)} disabled={rptLoading} className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-8 rounded-lg shadow">
-                        {rptLoading?'⏳ Generating...':'📋 Generate Regulatory Compliance Report'}
-                    </button>
-                </div>
-
-                {/* Report */}
-                {report && !report.error && (
-                <div className="fade-in bg-white rounded-xl shadow-sm border p-6">
-                    <div className="flex items-center justify-between mb-5">
-                        <h3 className="text-lg font-semibold">📋 Regulatory Compliance Report</h3>
-                        <span className={`px-3 py-1 rounded-full border text-sm font-bold ${report.compliance_assessment.overall_status==='COMPLIANT'?'text-green-700 bg-green-100 border-green-300':'text-yellow-700 bg-yellow-100 border-yellow-300'}`}>
-                            {report.compliance_assessment.overall_status}
-                        </span>
-                    </div>
-
-                    <div className="bg-gray-50 rounded-lg p-4 mb-4 grid grid-cols-2 gap-4">
-                        <div><p className="text-xs text-gray-500">Regulator</p><p className="font-semibold">{report.regulator.name}</p></div>
-                        <div><p className="text-xs text-gray-500">Report ID</p><p className="font-mono text-sm">{report.report_id}</p></div>
-                        <div><p className="text-xs text-gray-500">Generated</p><p className="text-sm">{new Date(report.generated_at).toLocaleString()}</p></div>
-                        <div><p className="text-xs text-gray-500">Audit ID</p><p className="font-mono text-sm">{report.decision_summary.audit_id}</p></div>
-                    </div>
-
-                    <div className="mb-4">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-2">📜 Applicable Guidelines</h4>
-                        <ul className="space-y-1">{report.regulator.applicable_guidelines.map((g,i)=><li key={i} className="text-sm text-gray-600">✓ {g}</li>)}</ul>
-                    </div>
-
-                    <div className="mb-4">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-2">✅ Compliance Checks ({report.compliance_assessment.checks_passed}/{report.compliance_assessment.checks_total})</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {report.compliance_assessment.detailed_checks.map((ch,i)=>(
-                                <div key={i} className="rounded-lg p-3 border bg-green-50 border-green-200">
-                                    <div className="flex items-center gap-2"><span>✅</span><span className="text-sm font-medium">{ch.check_name}</span></div>
-                                    <p className="text-xs text-gray-600 mt-1 ml-6">{ch.details}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="mb-4">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-2">📋 Requirements</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {Object.entries(report.requirements_met).map(([k,v])=>(
-                                <div key={k} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                    <p className="text-xs font-semibold text-blue-700">{k.replace(/_/g,' ').toUpperCase()}</p>
-                                    <p className="text-sm text-blue-900 mt-1">{v}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                        <h4 className="text-sm font-semibold text-amber-800 mb-2">💡 Recommendations</h4>
-                        <ul>{report.recommendations.map((r,i)=><li key={i} className="text-sm text-amber-700">• {r}</li>)}</ul>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-4 italic">{report.legal_disclaimer}</p>
-                </div>)}
-            </div>)}
-        </main>
-
-        <footer className="bg-gray-800 text-gray-300 py-6 mt-12">
-            <div className="max-w-7xl mx-auto px-4 text-center">
-                <p className="text-sm">XAI Platform v1.0 | Compliant with RBI, IRDAI, SEBI & IndiaAI Guidelines</p>
-                <p className="text-xs text-gray-500 mt-1">Supporting 22 Scheduled Indian Languages | Audit-Ready Explanations</p>
-            </div>
-        </footer>
-    </div>);
+/* --------------------------------------------------------------- language */
+function langMeta() {
+  return (state.catalog && state.catalog.languages[state.lang]) || {};
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-    </script>
+/* Direction and lang are set on <html> so the browser applies bidi and the
+   correct font stack to the whole document, including the report. */
+function applyDirection() {
+  var m = langMeta();
+  document.documentElement.dir = m.rtl ? 'rtl' : 'ltr';
+  document.documentElement.lang = state.lang;
+}
+
+function renderLangPicker() {
+  var sel = $('langSel');
+  if (!state.catalog) { sel.innerHTML = ''; return; }
+  var entries = Object.keys(state.catalog.languages).map(function (c) {
+    return [c, state.catalog.languages[c]];
+  });
+  function opt(e) {
+    var c = e[0], m = e[1];
+    var name = m.name_native + (m.name_native !== m.name_en ? ' (' + m.name_en + ')' : '');
+    // Coverage is shown in the picker so an incomplete language is obvious
+    // before it is chosen, not after.
+    if (m.coverage_percent < 100) name += ' \u2014 ' + m.coverage_percent + '%';
+    return '<option value="' + esc(c) + '"' + (c === state.lang ? ' selected' : '') + '>' + esc(name) + '</option>';
+  }
+  var working = entries.filter(function (e) { return !e[1].scheduled; });
+  var sched = entries.filter(function (e) { return e[1].scheduled; })
+    .sort(function (a, b) { return a[1].name_en.localeCompare(b[1].name_en); });
+  sel.innerHTML =
+    '<optgroup label="Working language">' + working.map(opt).join('') + '</optgroup>' +
+    '<optgroup label="Eighth Schedule (' + sched.length + ')">' + sched.map(opt).join('') + '</optgroup>';
+}
+
+function renderCoverage() {
+  var el = $('covBadge'), m = langMeta();
+  if (!m.name_native || state.lang === 'en') { el.textContent = ''; el.className = 'cov'; return; }
+  var p = m.coverage_percent;
+  el.className = 'cov ' + (p >= 90 ? 'full' : p > 0 ? 'part' : 'none');
+  el.textContent = p + '% translated' +
+    (m.review_status !== 'verified' ? ' \u00B7 awaiting native review' : '');
+  el.title = 'Share of the translation key contract covered by this language';
+}
+
+/* ---------------------------------------------------------------- domains */
+function renderDomains() {
+  if (!state.domains) return;
+  $('domHeading').textContent = state.ui.select_domain || 'Select Decision Domain';
+  $('domains').innerHTML = DOMAIN_ORDER.filter(function (k) { return state.domains[k]; })
+    .map(function (k) {
+      var d = state.domains[k];
+      return '<button class="dcard" data-domain="' + esc(k) + '" aria-pressed="' +
+        (state.domainKey === k) + '">' +
+        '<div class="emoji">' + DOMAIN_ICONS[k] + '</div>' +
+        '<div class="nm">' + esc(d.name) + '</div>' +
+        '<div class="rg">' + esc(d.regulator_name) + '</div>' +
+        '<span class="tag">' + esc(d.regulator) + '</span></button>';
+    }).join('');
+}
+
+/* ------------------------------------------------------------- input form */
+function renderFields() {
+  var d = state.domains && state.domains[state.domainKey];
+  if (!d) return;
+  var labels = d.field_labels || {};
+  $('inputHeading').textContent = (DOMAIN_ICONS[state.domainKey] || '') + ' ' +
+    (state.ui.input_params || 'Input Parameters');
+  $('sampleBtn').textContent = state.ui.load_sample || 'Load Sample';
+  $('langLabel').textContent = state.ui.language_label || 'Explanation Language';
+  $('genBtn').textContent = state.busy
+    ? (state.ui.generating || 'Generating...')
+    : (state.ui.generate_btn || 'Generate Explanation');
+  $('genBtn').disabled = state.busy;
+
+  $('fields').innerHTML = Object.keys(state.inputs).map(function (k) {
+    var v = state.inputs[k];
+    // Field label arrives from the server already translated.
+    var head = '<label class="lbl" for="f_' + esc(k) + '">' + esc(labels[k] || k) + '</label>';
+    var ctl;
+    if (typeof v === 'boolean') {
+      ctl = '<select id="f_' + esc(k) + '" data-field="' + esc(k) + '" data-kind="bool">' +
+        '<option value="true"' + (v ? ' selected' : '') + '>' + esc(state.ui.yes || 'Yes') + '</option>' +
+        '<option value="false"' + (!v ? ' selected' : '') + '>' + esc(state.ui.no || 'No') + '</option></select>';
+    } else if (CHOICES[k]) {
+      ctl = '<select id="f_' + esc(k) + '" data-field="' + esc(k) + '" data-kind="enum">' +
+        CHOICES[k].map(function (o) {
+          return '<option value="' + esc(o) + '"' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>';
+        }).join('') + '</select>';
+    } else {
+      ctl = '<input id="f_' + esc(k) + '" data-field="' + esc(k) + '" data-kind="num" ' +
+        'type="number" step="any" value="' + esc(v) + '">';
+    }
+    return '<div>' + head + ctl + '</div>';
+  }).join('');
+}
+
+/* ------------------------------------------------------------ explanation */
+function renderResult() {
+  var host = $('result'), r = state.result;
+  if (!r) { host.innerHTML = ''; return; }
+  var lang = r.language, ui = state.ui;
+  var tone = TONE[r.decision_code] || 'warn';
+  var max = r.feature_contributions.reduce(function (m, c) {
+    return Math.max(m, Math.abs(c.contribution));
+  }, 1e-9);
+
+  var bars = r.feature_contributions.map(function (c, i) {
+    var pos = c.contribution_direction === 'positive';
+    // Floor the width so the smallest contributors remain visible.
+    var w = Math.max(Math.abs(c.contribution) / max * 100, 2);
+    return '<div class="bar-row fade" style="animation-delay:' + (i * 30) + 'ms">' +
+      '<div class="bar-head"><span class="bar-name"><span class="bar-rank">#' + c.importance_rank +
+      '</span>' + esc(c.feature_label || c.feature_name) + '</span>' +
+      '<span class="bar-val ' + (pos ? 'pos' : 'neg') + '">' + (pos ? '+' : '\u2212') +
+      (Math.abs(c.contribution) * 100).toFixed(1) + '%</span></div>' +
+      '<div class="track"><div class="fill ' + (pos ? 'pos' : 'neg') + '" style="width:' + w + '%"></div></div>' +
+      '<p class="bar-exp" lang="' + esc(lang) + '">' + esc(c.translated_explanation) + '</p></div>';
+  }).join('');
+
+  // English is kept beside the translation: it is the authoritative text and
+  // lets a reviewer who cannot read the script verify the output.
+  var showOrig = lang !== 'en' && r.translated_summary !== r.summary_explanation;
+
+  host.innerHTML =
+    '<section class="card fade"><h2 class="sec">' + esc(ui.explanation_heading || 'AI Decision & Explanation') + '</h2>' +
+      '<div class="grid g4" style="margin-bottom:16px">' +
+        '<div class="box tone-' + tone + '"><div class="k">' + esc(ui.decision_label || 'Decision') +
+          '</div><div class="v" lang="' + esc(lang) + '">' + esc(r.decision_label) + '</div></div>' +
+        '<div class="box"><div class="k">' + esc(ui.confidence_label || 'Confidence') +
+          '</div><div class="v">' + pct(r.confidence) + '</div></div>' +
+        '<div class="box"><div class="k">' + esc(ui.risk_label || 'Risk Score') +
+          '</div><div class="v">' + pct(r.risk_score) + '</div></div>' +
+        '<div class="box"><div class="k">' + esc(ui.audit_label || 'Audit ID') +
+          '</div><div class="v mono">' + esc(r.audit_id) + '</div></div>' +
+      '</div>' +
+      '<div class="note"><div class="k">' + esc(ui.summary_heading || 'Explanation Summary') +
+        ' \u00B7 ' + esc(r.language_meta.name_native) + '</div>' +
+        '<div lang="' + esc(lang) + '" style="font-weight:500">' + esc(r.translated_summary) + '</div>' +
+        (showOrig ? '<p class="orig" dir="ltr">' + esc(r.summary_explanation) + '</p>' : '') +
+      '</div>' +
+      '<div class="warnbar" lang="' + esc(lang) + '">\u2696\uFE0F ' +
+        esc(r.regulatory_compliance.compliance_note) + '</div>' +
+    '</section>' +
+    '<section class="card fade"><h2 class="sec">' +
+      esc(ui.contributions_heading || 'Feature Contributions') + '</h2>' + bars + '</section>' +
+    '<div class="center"><button class="btn v" id="reportBtn"' + (state.reportBusy ? ' disabled' : '') + '>' +
+      esc(state.reportBusy ? (ui.report_generating || 'Generating report...')
+                           : (ui.report_btn || 'Generate Compliance Report')) + '</button></div>';
+
+  $('reportBtn').addEventListener('click', generateReport);
+}
+
+/* ----------------------------------------------------------------- report */
+/* Rendered entirely from the payload: every heading arrives in report.labels,
+   so this function holds no dictionary of its own. */
+function renderReport() {
+  var host = $('report'), rep = state.report;
+  if (!rep) { host.innerHTML = ''; return; }
+  var L = rep.labels, lang = rep.language.code, a = rep.compliance_assessment;
+  var tone = a.overall_status === 'COMPLIANT' ? 'good' : 'warn';
+
+  var facts = [
+    [L.regulator, rep.regulator.name], [L.domain, rep.domain.name],
+    [L.report_id, rep.report_id], [L.audit_id, rep.decision_summary.audit_id],
+    [L.decision, rep.decision_summary.decision], [L.confidence, pct(rep.decision_summary.confidence)],
+    [L.risk_score, pct(rep.decision_summary.risk_score)], [L.model_version, rep.model_info.version]
+  ].map(function (p) {
+    return '<div class="box"><div class="k">' + esc(p[0]) + '</div><div class="v">' + esc(p[1]) + '</div></div>';
+  }).join('');
+
+  // Citations keep their published English form, so they are forced LTR.
+  var guides = rep.regulator.applicable_guidelines.map(function (g) {
+    return '<li><span class="tick">\u2713</span><span dir="ltr">' + esc(g) + '</span></li>';
+  }).join('');
+
+  var checks = a.detailed_checks.map(function (c) {
+    return '<div class="check st-' + esc(c.status) + '">' +
+      '<div class="top"><span>' + (STATUS_ICON[c.status] || '') + '</span>' +
+      '<span>' + esc(c.check_name) + '</span>' +
+      '<span class="st">' + esc(c.status_label) + '</span></div>' +
+      '<p class="crit">' + esc(c.criterion) + '</p>' +
+      // Findings stay English: they name specific evidence for the officer.
+      (c.finding ? '<p class="find" dir="ltr">' + esc(c.finding) + '</p>' : '') +
+      '</div>';
+  }).join('');
+
+  var reqs = rep.requirements_met.map(function (q) {
+    return '<div class="req"><div class="k">' + esc(q.label) + '</div>' +
+      '<p class="t">' + esc(q.text) + '</p></div>';
+  }).join('');
+
+  var recs = rep.recommendations.map(function (x) {
+    return '<li>\u2022 ' + esc(x) + '</li>';
+  }).join('');
+
+  host.innerHTML = '<section class="card fade" lang="' + esc(lang) + '">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px">' +
+      '<h2 class="sec" style="margin:0">' + esc(L.title) + '</h2>' +
+      '<span class="pill tone-' + tone + '">' + esc(a.overall_status_label) + '</span></div>' +
+    // Translation provenance appears before the findings.
+    (rep.translation_notice ? '<p class="prov">' + esc(rep.translation_notice) + '</p>' : '') +
+    '<div class="grid g4">' + facts + '</div>' +
+    '<h3 class="sub-h">' + esc(L.guidelines_heading) + '</h3><ul class="glist">' + guides + '</ul>' +
+    '<h3 class="sub-h">' + esc(L.checks_heading) + ' <span class="muted" style="font-weight:400">(' +
+      a.checks_passed + '/' + a.checks_total + ')</span></h3>' +
+    '<div class="grid g2">' + checks + '</div>' +
+    '<h3 class="sub-h">' + esc(L.requirements_heading) + '</h3><div class="grid g2">' + reqs + '</div>' +
+    '<h3 class="sub-h">' + esc(L.recommendations_heading) + '</h3><ul class="recs">' + recs + '</ul>' +
+    '<p class="disc">' + esc(rep.legal_disclaimer) + '</p></section>';
+}
+
+function renderChrome() {
+  $('appTitle').textContent = state.ui.app_title || 'XAI Platform';
+  var sub = $('appSub');
+  sub.textContent = state.ui.app_subtitle || '';
+  sub.setAttribute('lang', state.lang);
+  var fn = $('footNote');
+  fn.textContent = state.ui.footer_note || '';
+  fn.setAttribute('lang', state.lang);
+  if (state.catalog) {
+    $('footMeta').textContent = state.catalog.scheduled_languages +
+      ' Eighth Schedule catalogs \u00B7 ' + state.catalog.contract_keys + ' translation keys';
+  }
+  renderCoverage();
+}
+
+function renderAll() {
+  applyDirection();
+  renderChrome();
+  renderDomains();
+  renderFields();
+  renderResult();
+  renderReport();
+}
+
+function showError(msg) {
+  var el = $('err');
+  if (!msg) { el.hidden = true; el.textContent = ''; return; }
+  el.hidden = false;
+  el.textContent = msg;
+}
+
+/* ------------------------------------------------------------------ data */
+function getJSON(path) {
+  return fetch(API + path).then(function (res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' on ' + path);
+    return res.json();
+  });
+}
+function postJSON(path, body) {
+  return fetch(API + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(function (res) {
+    return res.json().then(function (data) {
+      if (!res.ok || data.error) throw new Error(data.error || ('HTTP ' + res.status));
+      return data;
+    });
+  });
+}
+
+/* UI strings, domain names and field labels are all language-dependent, so a
+   language change refetches them rather than translating on the client. */
+function loadLanguage(keepInputs) {
+  return Promise.all([
+    getJSON('/api/i18n/ui?lang=' + encodeURIComponent(state.lang)),
+    getJSON('/api/models/domains?lang=' + encodeURIComponent(state.lang))
+  ]).then(function (out) {
+    state.ui = out[0].strings || {};
+    state.domains = out[1];
+    if (!keepInputs || !Object.keys(state.inputs).length) {
+      state.inputs = Object.assign({}, state.domains[state.domainKey].sample_input);
+    }
+    renderAll();
+  });
+}
+
+function boot() {
+  getJSON('/api/i18n/languages').then(function (cat) {
+    state.catalog = cat;
+    if (!cat.languages[state.lang]) state.lang = 'en';
+    renderLangPicker();
+    return loadLanguage(false);
+  }).catch(function (e) {
+    showError('Could not reach the API (' + e.message + '). Start the server with: python server.py');
+  });
+}
+
+/* ---------------------------------------------------------------- actions */
+function generate() {
+  state.busy = true; state.result = null; state.report = null;
+  showError(null); renderFields(); renderResult(); renderReport();
+
+  postJSON('/api/explanations/generate', {
+    domain: state.domainKey,
+    language: state.lang,
+    regulator: state.domains[state.domainKey].regulator,
+    input_data: state.inputs,
+    model_version: 'v1.0'
+  }).then(function (data) {
+    state.result = data;
+  }).catch(function (e) {
+    showError(e.message);
+  }).then(function () {
+    state.busy = false;
+    renderFields(); renderResult();
+  });
+}
+
+function generateReport() {
+  if (!state.result) return;
+  state.reportBusy = true; state.report = null;
+  renderResult(); renderReport();
+
+  postJSON('/api/reports/generate', {
+    explanation_id: state.result.audit_id,
+    domain: state.domainKey,
+    regulator: state.domains[state.domainKey].regulator,
+    language: state.lang
+  }).then(function (data) {
+    state.report = data;
+  }).catch(function (e) {
+    showError(e.message);
+  }).then(function () {
+    state.reportBusy = false;
+    renderResult(); renderReport();
+  });
+}
+
+/* ------------------------------------------------------------------ events */
+/* Delegated, because the fields and domain cards are re-rendered on every
+   language change and would otherwise lose their listeners. */
+$('domains').addEventListener('click', function (ev) {
+  var btn = ev.target.closest('[data-domain]');
+  if (!btn) return;
+  state.domainKey = btn.getAttribute('data-domain');
+  state.inputs = Object.assign({}, state.domains[state.domainKey].sample_input);
+  state.result = null; state.report = null;
+  showError(null); renderAll();
+});
+
+$('fields').addEventListener('input', function (ev) {
+  var el = ev.target, field = el.getAttribute('data-field');
+  if (!field) return;
+  var kind = el.getAttribute('data-kind');
+  if (kind === 'bool') state.inputs[field] = el.value === 'true';
+  else if (kind === 'num') state.inputs[field] = el.value === '' ? 0 : parseFloat(el.value);
+  else state.inputs[field] = el.value;
+});
+$('sampleBtn').addEventListener('click', function () {
+  state.inputs = Object.assign({}, state.domains[state.domainKey].sample_input);
+  renderFields();
+});
+
+$('genBtn').addEventListener('click', generate);
+
+$('langSel').addEventListener('change', function () {
+  state.lang = this.value;
+  renderCoverage();
+  // Existing output was produced in the previous language; clear it rather
+  // than showing a mixed-language screen.
+  state.result = null; state.report = null;
+  loadLanguage(true).catch(function (e) { showError(e.message); });
+});
+
+boot();
+</script>
 </body>
 </html>
