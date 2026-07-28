@@ -18,6 +18,7 @@ from typing import Dict, List
 import hashlib
 
 from app import i18n
+from app.services.translation_service import translation_service
 
 
 class ComplianceService:
@@ -229,6 +230,62 @@ class ComplianceService:
         out.append(i18n.text(lang, "RECOMMENDATIONS", "retain_logs"))
         return out
 
+    # ---- plain-language reasoning ---------------------------------------
+
+    def _reasoning(self, domain: str, explanation_data: Dict, lang: str) -> Dict:
+        """
+        Build the human-readable "why" block.
+
+        The report's purpose is that a customer or officer can understand the
+        decision, so each factor is returned with three things a reader needs:
+        the value that was actually submitted, a full sentence explaining the
+        effect, and a *share of influence* rather than a raw model coefficient.
+
+        Share matters. The raw contribution is a weighted internal quantity;
+        rendering it as "+4.4%" invites the reader to think 4.4% of something
+        meaningful. Share is normalised over the absolute contributions, so the
+        numbers sum to 100% and "this factor drove a fifth of the outcome" is a
+        true statement.
+        """
+        contributions = explanation_data.get("contributions") or []
+        total = sum(abs(c.get("contribution", 0.0)) for c in contributions)
+
+        def describe(c):
+            contribution = c.get("contribution", 0.0)
+            value = c.get("feature_value")
+            return {
+                "rank": c.get("importance_rank"),
+                "feature_code": c["feature_name"],
+                "feature": translation_service.translate_feature(c["feature_name"], lang),
+                "value": value,
+                "contribution": round(contribution, 4),
+                # Normalised, so the listed shares add up to 100%.
+                "share": round(abs(contribution) / total, 4) if total else 0.0,
+                "direction": c.get("contribution_direction"),
+                "explanation": translation_service.translate_explanation(
+                    c["feature_name"], value, contribution, lang),
+            }
+
+        described = [describe(c) for c in contributions]
+        favour = [d for d in described if d["direction"] == "positive"]
+        against = [d for d in described if d["direction"] != "positive"]
+
+        decision = explanation_data.get("decision", "")
+        top = [c["feature_name"] for c in contributions[:3]]
+
+        block = {
+            # Same one-line verdict the customer saw on screen, so the printed
+            # report and the interactive view cannot disagree.
+            "plain_summary": translation_service.translate_summary(
+                domain, decision, top, lang) if top else "",
+            "favour": favour,
+            "against": against,
+        }
+        if described:
+            block["strongest"] = i18n.text(lang, "REPORT_REASONS", "strongest_factor") \
+                .format(feature=described[0]["feature"])
+        return block
+
     # ---- report ---------------------------------------------------------
 
     def generate_compliance_report(self, regulator: str, domain: str,
@@ -297,6 +354,11 @@ class ComplianceService:
                 "risk_score": explanation_data.get("risk_score", 0),
                 "audit_id": explanation_data.get("audit_id", "N/A"),
             },
+            # Plain-language reasons, and the labels that head them. This block
+            # is what makes the report readable; the framework evidence below
+            # is what makes it filable.
+            "reason_labels": i18n.section(lang, "REPORT_REASONS"),
+            "reasoning": self._reasoning(domain, explanation_data, lang),
             "explainability_report": {
                 "num_features_explained": len(explanation_data.get("contributions", [])),
                 "top_factors": [

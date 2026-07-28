@@ -76,6 +76,45 @@ Nepali was **added** in this version. The previous language list counted English
 as one of the 22 and omitted Nepali, so it advertised 22 while shipping 21
 Indian languages.
 
+## Reading the report
+
+The report is ordered so that a reader who stops after the first screen already
+has their answer:
+
+1. **How to read this report** — states that the decision was automated and that
+   the listed factors are the only things that influenced it.
+2. **In plain language** — the decision in one word, a one-sentence reason, and
+   the single largest influence named outright.
+3. **Why this decision was reached** — every factor split into *counted against*
+   and *counted in favour*, each with a full sentence, a proportional bar, and
+   the value that was actually submitted so the reader can check it against
+   their own paperwork.
+4. Only then the regulatory evidence: guidelines, checks, requirements.
+
+Two deliberate choices in that section:
+
+- Factors show a **share of influence**, normalised so the listed shares sum to
+  100%. The raw model contribution is a weighted internal quantity; printing it
+  as "+4.4%" invites a reader to think it is 4.4% of something meaningful.
+  "Past defaults drove 46% of this outcome" is a statement that survives being
+  read aloud to a customer.
+- Colour separates two independent judgements. The status pill answers *was the
+  process compliant*; the verdict answers *was the outcome favourable*. A
+  rejected application from a fully compliant process is green on the pill and
+  red on the verdict.
+
+## Iconography
+
+All icons are inline SVG using `currentColor`, so they inherit the theme and
+scale to print. There are no emoji: they render inconsistently across platforms
+and were showing as empty boxes on systems without an emoji font.
+
+Each regulator has an original, purpose-drawn monogram in its own identity
+colour. **These are not the official RBI, IRDAI or SEBI emblems.** Those are
+protected marks, and reproducing them in a third-party compliance tool would
+imply an endorsement or certification that does not exist. If you ever deploy
+this for real, get written permission before using an official emblem.
+
 ## The compliance report
 
 `POST /api/reports/generate` renders in the requested language: headings, field

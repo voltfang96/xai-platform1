@@ -50,9 +50,9 @@ _MODULES = {
 
 # Sections that are flat ``key -> string`` maps.
 _FLAT_SECTIONS = (
-    "FEATURES", "DECISIONS", "EXPLANATION", "SUMMARY", "REPORT", "STATUS",
-    "DOMAINS", "REGULATORS", "REQUIREMENT_LABELS", "REQUIREMENT_TEXT",
-    "RECOMMENDATIONS", "UI",
+    "FEATURES", "DECISIONS", "EXPLANATION", "SUMMARY", "REPORT",
+    "REPORT_REASONS", "STATUS", "DOMAINS", "REGULATORS",
+    "REQUIREMENT_LABELS", "REQUIREMENT_TEXT", "RECOMMENDATIONS", "UI",
 )
 # CHECKS maps key -> (name, details) tuples and is handled separately.
 

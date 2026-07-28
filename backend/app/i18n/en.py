@@ -217,3 +217,27 @@ UI = {
     "yes": "Yes",
     "no": "No",
 }
+
+
+# ---------------------------------------------------------------------------
+# Plain-language reasoning block.
+#
+# The report exists so a customer or a compliance officer can understand WHY a
+# decision was reached. These keys drive that section, which is deliberately
+# placed above the regulatory apparatus: the reasons come first, the framework
+# evidence second.
+# ---------------------------------------------------------------------------
+REPORT_REASONS = {
+    "reasons_heading": "Why this decision was reached",
+    "plain_verdict": "In plain language",
+    "favour_heading": "Counted in favour",
+    "against_heading": "Counted against",
+    "no_favour": "No factor counted in favour of this decision.",
+    "no_against": "No factor counted against this decision.",
+    "influence_note": "Each percentage is that factor's share of the total influence on this decision, largest first.",
+    "value_label": "Value used",
+    "share_label": "Share of influence",
+    "strongest_factor": "The single largest influence was {feature}.",
+    "how_to_read": "How to read this report",
+    "how_to_read_body": "The decision below was produced by an automated model. Every factor the model used is listed with the value supplied and how much it moved the outcome. Nothing outside this list influenced the result.",
+}
