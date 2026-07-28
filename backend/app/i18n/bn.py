@@ -171,6 +171,7 @@ UI = {
     "contributions_heading": "বৈশিষ্ট্যের অবদান",
     "summary_heading": "ব্যাখ্যার সারসংক্ষেপ",
     "report_btn": "সম্মতি প্রতিবেদন তৈরি করুন",
+    "print_btn": "প্রতিবেদন প্রিন্ট করুন",
     "report_generating": "প্রতিবেদন তৈরি হচ্ছে...",
     "coverage_label": "অনুবাদ কভারেজ",
     "needs_review_badge": "মাতৃভাষী পর্যালোচনা প্রয়োজন",

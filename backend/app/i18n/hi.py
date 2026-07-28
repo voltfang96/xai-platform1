@@ -195,6 +195,7 @@ UI = {
     "contributions_heading": "विशेषता योगदान",
     "summary_heading": "स्पष्टीकरण सारांश",
     "report_btn": "अनुपालन रिपोर्ट उत्पन्न करें",
+    "print_btn": "रिपोर्ट प्रिंट करें",
     "report_generating": "रिपोर्ट बन रही है...",
     "coverage_label": "अनुवाद कवरेज",
     "needs_review_badge": "मूल भाषी समीक्षा अपेक्षित",

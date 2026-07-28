@@ -171,6 +171,7 @@ UI = {
     "contributions_heading": "లక్షణాల తోడ్పాటు",
     "summary_heading": "వివరణ సారాంశం",
     "report_btn": "అనుసరణ నివేదికను రూపొందించు",
+    "print_btn": "నివేదికను ముద్రించు",
     "report_generating": "నివేదిక రూపొందిస్తోంది...",
     "coverage_label": "అనువాద పరిధి",
     "needs_review_badge": "మాతృభాషీయ సమీక్ష అవసరం",

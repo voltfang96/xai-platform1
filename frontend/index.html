@@ -151,6 +151,69 @@ footer{border-top:1px solid var(--border);margin-top:32px;padding:20px 0;text-al
 .fade{animation:fu .3s ease-out both}
 @keyframes fu{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 [hidden]{display:none !important}
+
+/* report header + attribution block */
+.rep-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.rep-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.print-btn{white-space:nowrap}
+.fmeta{font-size:.78rem;color:var(--muted);margin:0 0 8px}
+.factors{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+@media(max-width:560px){.factors{grid-template-columns:1fr}}
+.factor{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:var(--track)}
+.fname{font-size:.84rem}
+.fval{font-size:.84rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fval.pos{color:var(--good-bar)}.fval.neg{color:var(--bad-bar)}
+
+/* Print-only letterhead; hidden on screen. */
+.print-head{display:none}
+
+/* ------------------------------------------------------------------ print */
+@media print {
+  /* Paper is white regardless of the on-screen theme: printing a dark UI
+     wastes ink and reads badly. The light tokens are re-declared rather than
+     toggling the theme attribute, so the screen is untouched while printing. */
+  html, html[data-theme="dark"] {
+    --bg:#fff; --panel:#fff; --border:#c9d1dc; --text:#000; --muted:#444;
+    --track:#f2f4f7;
+    --good-bg:#f0fdf7; --good-br:#8fdcb6; --good-tx:#065f46; --good-bar:#047857;
+    --warn-bg:#fffaf0; --warn-br:#e8c37a; --warn-tx:#7c4a03;
+    --bad-bg:#fff5f5;  --bad-br:#e9a3a3;  --bad-tx:#8f1d1d; --bad-bar:#b91c1c;
+    --info-bg:#f5f6ff; --info-br:#bcc3ee; --info-tx:#2c2f6b;
+    --sky-bg:#f4fafe;  --sky-br:#a8cfe6;  --sky-tx:#0b4f6c;
+    --shadow:none;
+  }
+  @page { size:A4; margin:14mm; }
+
+  body{background:#fff;color:#000;font-size:10.5pt}
+  /* Keep the status/finding colours on paper; they carry meaning. */
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .fade{animation:none}
+
+  /* Only the report goes to paper. */
+  header.top, footer, #domHeading, #domains, #inputCard, #err, #result,
+  .rep-actions, .print-btn { display:none !important; }
+
+  main{padding:0}
+  .wrap{max-width:none;padding:0}
+  #report{margin:0}
+  .card{border:0;box-shadow:none;padding:0;margin:0}
+
+  .print-head{display:block;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:14px}
+  .ph-title{font-size:15pt;font-weight:700}
+  .ph-meta{font-size:8.5pt;color:#333;margin-top:3px}
+  /* The on-screen title duplicates the letterhead once printing. */
+  .rep-head h2.sec{display:none}
+
+  h3.sub-h{font-size:11pt;margin:14px 0 6px;break-after:avoid;page-break-after:avoid}
+  /* Never split an individual finding, requirement or fact across pages. */
+  .box, .check, .req, .factor, .prov, ul.recs{break-inside:avoid;page-break-inside:avoid}
+  .grid{gap:8px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g2, .factors{grid-template-columns:repeat(2,1fr)}
+  .disc{margin-top:14px}
+  a[href]:after{content:""}
+}
 </style>
 </head>
 <body>
@@ -173,7 +236,7 @@ footer{border-top:1px solid var(--border);margin-top:32px;padding:20px 0;text-al
   <h2 class="sec" id="domHeading">Select Decision Domain</h2>
   <div class="grid g3" id="domains" style="margin-bottom:18px"></div>
 
-  <section class="card">
+  <section class="card" id="inputCard">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px">
       <h2 class="sec" style="margin:0" id="inputHeading">Input Parameters</h2>
       <button class="btn ghost" id="sampleBtn">Load Sample</button>
@@ -441,13 +504,45 @@ function renderReport() {
     return '<li>\u2022 ' + esc(x) + '</li>';
   }).join('');
 
-  host.innerHTML = '<section class="card fade" lang="' + esc(lang) + '">' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px">' +
+  /* The feature attribution is the evidence the whole report rests on, so it
+     belongs in the report itself rather than only in the interactive panel
+     above - otherwise a printed or filed report omits its own basis. The
+     payload has always carried this; it simply was not being rendered. */
+  var er = rep.explainability_report || {};
+  var factors = (er.top_factors || []).map(function (f) {
+    var pos = f.direction === 'positive';
+    return '<div class="factor">' +
+      '<span class="fname">' + esc(f.feature) + '</span>' +
+      '<span class="fval ' + (pos ? 'pos' : 'neg') + '">' + (pos ? '+' : '\u2212') +
+      (Math.abs(f.contribution) * 100).toFixed(1) + '%</span></div>';
+  }).join('');
+
+  host.innerHTML = '<section class="card fade" id="reportCard" lang="' + esc(lang) + '">' +
+    /* Print-only letterhead. Browser print headers are unreliable and often
+       disabled, so identity travels inside the document. */
+    '<div class="print-head">' +
+      '<div class="ph-title">' + esc(L.title) + '</div>' +
+      '<div class="ph-meta">' + esc(L.report_id) + ': ' + esc(rep.report_id) +
+        '  \u00B7  ' + esc(L.audit_id) + ': ' + esc(rep.decision_summary.audit_id) +
+        '  \u00B7  ' + esc(L.generated_at) + ': ' + esc(fmtStamp(rep.generated_at)) + '</div>' +
+      '<div class="ph-meta" dir="ltr">' + esc(location.origin) + '</div>' +
+    '</div>' +
+    '<div class="rep-head">' +
       '<h2 class="sec" style="margin:0">' + esc(L.title) + '</h2>' +
-      '<span class="pill tone-' + tone + '">' + esc(a.overall_status_label) + '</span></div>' +
-    // Translation provenance appears before the findings.
+      '<div class="rep-actions">' +
+        '<span class="pill tone-' + tone + '">' + esc(a.overall_status_label) + '</span>' +
+        '<button class="btn ghost print-btn" id="printBtn" type="button">' +
+          '\u{1F5A8}\uFE0F ' + esc(state.ui.print_btn || 'Print report') + '</button>' +
+      '</div>' +
+    '</div>' +
     (rep.translation_notice ? '<p class="prov">' + esc(rep.translation_notice) + '</p>' : '') +
     '<div class="grid g4">' + facts + '</div>' +
+    (factors
+      ? '<h3 class="sub-h">' + esc(L.explainability_heading) + '</h3>' +
+        '<p class="fmeta">' + esc(L.features_explained) + ': ' +
+          esc(er.num_features_explained) + '  \u00B7  ' + esc(L.top_factors) + '</p>' +
+        '<div class="factors">' + factors + '</div>'
+      : '') +
     '<h3 class="sub-h">' + esc(L.guidelines_heading) + '</h3><ul class="glist">' + guides + '</ul>' +
     '<h3 class="sub-h">' + esc(L.checks_heading) + ' <span class="muted" style="font-weight:400">(' +
       a.checks_passed + '/' + a.checks_total + ')</span></h3>' +
@@ -455,7 +550,29 @@ function renderReport() {
     '<h3 class="sub-h">' + esc(L.requirements_heading) + '</h3><div class="grid g2">' + reqs + '</div>' +
     '<h3 class="sub-h">' + esc(L.recommendations_heading) + '</h3><ul class="recs">' + recs + '</ul>' +
     '<p class="disc">' + esc(rep.legal_disclaimer) + '</p></section>';
+
+  $('printBtn').addEventListener('click', printReport);
 }
+
+/* ISO timestamp -> locale string, falling back to the raw value so a printed
+   report never shows "Invalid Date". */
+function fmtStamp(iso) {
+  var d = new Date(iso);
+  return isNaN(d.getTime()) ? String(iso || '') : d.toLocaleString();
+}
+
+/* Printing is driven entirely by the print stylesheet, which hides the app
+   chrome and reflows the report onto paper. No second window is opened: a
+   popup would be blocked by default and would lose the loaded fonts. */
+function printReport() {
+  if (!state.report) return;
+  document.body.classList.add('printing');
+  window.print();
+}
+/* Clean up whether the dialog was completed or cancelled. */
+window.addEventListener('afterprint', function () {
+  document.body.classList.remove('printing');
+});
 
 function renderChrome() {
   $('appTitle').textContent = state.ui.app_title || 'XAI Platform';

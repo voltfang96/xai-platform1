@@ -209,6 +209,7 @@ UI = {
     "contributions_heading": "Feature Contributions",
     "summary_heading": "Explanation Summary",
     "report_btn": "Generate Compliance Report",
+    "print_btn": "Print report",
     "report_generating": "Generating report...",
     "coverage_label": "Translation coverage",
     "needs_review_badge": "Awaiting native-speaker review",

@@ -171,6 +171,7 @@ UI = {
     "contributions_heading": "பண்புகளின் பங்களிப்பு",
     "summary_heading": "விளக்கச் சுருக்கம்",
     "report_btn": "இணக்க அறிக்கையை உருவாக்கு",
+    "print_btn": "அறிக்கையை அச்சிடு",
     "report_generating": "அறிக்கை உருவாக்கப்படுகிறது...",
     "coverage_label": "மொழிபெயர்ப்பு பரப்பு",
     "needs_review_badge": "தாய்மொழி பேசுபவர் மறுஆய்வு தேவை",

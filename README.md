@@ -173,6 +173,25 @@ Dark theme by default; the toggle persists to `localStorage`. Urdu, Kashmiri and
 Sindhi switch the document to `dir="rtl"`, which mirrors the layout including
 the direction the contribution bars grow.
 
+## Printing a report
+
+The report carries a **Print report** button, labelled in the selected language.
+It uses the browser print dialog, so "Save as PDF" produces the same output.
+
+The print stylesheet drops the app chrome — header, domain cards, input form,
+the interactive explanation panel and the buttons themselves — and prints only
+the report, on white paper regardless of the on-screen theme. Status and finding
+colours are preserved because they carry meaning.
+
+Because browser print headers are often disabled, identity travels inside the
+document: a letterhead carries the report ID, audit trail ID, generation
+timestamp and origin. Individual findings, requirements and facts are never
+split across a page break.
+
+The printed report also includes the feature attribution table. The report
+payload always carried `explainability_report.top_factors` but the UI never
+displayed it, so a filed report previously omitted the evidence it rested on.
+
 ## Licence
 
 MIT. Built as a hackathon demonstration.
