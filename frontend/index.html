@@ -36,6 +36,9 @@
   --border:#dde4ee; --border-strong:#c3cddd;
   --text:#101a2b; --text-2:#33415c; --muted:#64748b;
   --accent:#0f766e; --accent-hi:#115e59; --accent-soft:#e6f4f2;
+  /* Secondary action (generate report). Distinct from the teal primary so the
+     two actions are not confusable, and dark enough for white label text. */
+  --violet:#6d28d9; --violet-hi:#5b21b6;
   --brand:#1e3a5f;
   --good-bg:#e9f9f1; --good-br:#9fdcc0; --good-tx:#0a5c3e; --good-bar:#0f9d6b;
   --warn-bg:#fdf6e7; --warn-br:#e8cd8e; --warn-tx:#7a5104; --warn-bar:#c98a05;
@@ -54,6 +57,9 @@ html[data-theme="dark"] {
   --border:#243040; --border-strong:#33445c;
   --text:#e8edf5; --text-2:#b9c5d6; --muted:#8b9bb0;
   --accent:#2dd4bf; --accent-hi:#14b8a6; --accent-soft:rgba(45,212,191,.12);
+  /* Not brightened for dark mode: the label is white, so the fill has to stay
+     deep enough to keep the text readable on it. */
+  --violet:#7c4ddb; --violet-hi:#6b3fc9;
   --brand:#8ab4e8;
   --good-bg:rgba(15,157,107,.13); --good-br:rgba(15,157,107,.34); --good-tx:#6ee7b7; --good-bar:#10b981;
   --warn-bg:rgba(201,138,5,.14);  --warn-br:rgba(201,138,5,.36);  --warn-tx:#f0c674; --warn-bar:#d99a12;
