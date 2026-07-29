@@ -1,226 +1,118 @@
 """
-Multilingual Translation Service for XAI explanations
-Supports 22 Indian scheduled languages
+Translation service.
+
+Thin facade over ``app.i18n``. All strings live in the per-language catalogs;
+this module only decides *which* key to look up for a given decision or
+contribution. Keeping the policy here and the data there is what let the
+language count grow from 10 partial dictionaries to 22 measured catalogs
+without touching call sites.
 """
-from typing import Dict
+from typing import Dict, List
+
+from app import i18n
 
 
 class TranslationService:
-    def __init__(self):
-        self._load_translations()
 
-    def _load_translations(self):
-        self.translations = {
-            "hi": self._hindi_translations(),
-            "bn": self._bengali_translations(),
-            "ta": self._tamil_translations(),
-            "te": self._telugu_translations(),
-            "mr": self._marathi_translations(),
-            "gu": self._gujarati_translations(),
-            "kn": self._kannada_translations(),
-            "ml": self._malayalam_translations(),
-            "pa": self._punjabi_translations(),
-            "ur": self._urdu_translations(),
-        }
-
-    def _hindi_translations(self) -> Dict:
-        return {
-            "features": {
-                "annual_income": "वार्षिक आय",
-                "credit_history_months": "क्रेडिट इतिहास (महीने)",
-                "existing_loans": "मौजूदा ऋण",
-                "loan_amount_requested": "अनुरोधित ऋण राशि",
-                "employment_years": "रोजगार वर्ष",
-                "monthly_expenses": "मासिक खर्च",
-                "age": "आयु",
-                "defaults_in_past": "पिछले डिफॉल्ट",
-                "bmi": "बॉडी मास इंडेक्स",
-                "smoking_status": "धूम्रपान स्थिति",
-                "pre_existing_conditions": "पहले से मौजूद बीमारियाँ",
-                "family_history_score": "पारिवारिक इतिहास स्कोर",
-                "occupation_risk": "व्यवसाय जोखिम",
-                "coverage_amount": "कवरेज राशि",
-                "symptoms_severity": "लक्षणों की गंभीरता",
-                "lab_results_abnormal": "असामान्य लैब परिणाम",
-                "medical_history_score": "चिकित्सा इतिहास स्कोर",
-                "vitals_risk_score": "जीवन संकेत जोखिम स्कोर",
-                "treatment_urgency": "उपचार की तत्काकता",
-            },
-            "decisions": {
-                "APPROVED": "स्वीकृत", "REJECTED": "अस्वीकृत",
-                "REVIEW_REQUIRED": "समीक्षा आवश्यक",
-                "STANDARD_PREMIUM": "मानक प्रीमियम",
-                "LOADED_PREMIUM": "भारित प्रीमियम",
-                "DECLINED": "अस्वीकृत",
-                "HIGH_RISK_INTERVENTION": "उच्च जोखिम हस्तक्षेप",
-                "MODERATE_RISK_MONITORING": "मध्यम जोखिम निगरानी",
-                "LOW_RISK_ROUTINE": "कम जोखिम नियमित",
-            },
-            "explanations": {
-                "positive_high": "{feature} का उच्च मान ({value}) ने निर्णय को सकारात्मक रूप से प्रभावित किया",
-                "positive_low": "{feature} ने निर्णय में मामूली सकारात्मक योगदान दिया",
-                "negative_high": "{feature} का मान ({value}) ने निर्णय को नकारात्मक रूप से प्रभावित किया",
-                "negative_low": "{feature} ने निर्णय में मामूली नकारात्मक योगदान दिया",
-            },
-            "summary": {
-                "credit_approved": "आपका ऋण आवेदन स्वीकृत किया गया है। प्रमुख कारक: {factors}",
-                "credit_rejected": "आपका ऋण आवेदन अस्वीकृत किया गया है। प्रमुख कारण: {factors}",
-                "credit_review": "आपका ऋण आवेदन समीक्षा के लिए भेजा गया है। कारक: {factors}",
-            },
-            "regulatory": {
-                "compliance_note": "यह स्पष्टीकरण {regulator} दिशानिर्देशों के अनुसार तैयार किया गया है",
-            },
-        }
-
-    def _bengali_translations(self) -> Dict:
-        return {
-            "features": {
-                "annual_income": "বার্ষিক আয়", "credit_history_months": "ক্রেডিট ইতিহাস (মাস)",
-                "existing_loans": "বিদ্যমান ঋণ", "age": "বয়স",
-                "smoking_status": "ধূমপানের অবস্থা",
-            },
-            "decisions": {"APPROVED": "অনুমোদিত", "REJECTED": "প্রত্যাখ্যাত", "REVIEW_REQUIRED": "পর্যালোচনা প্রয়োজন"},
-            "explanations": {
-                "positive_high": "{feature} এর উচ্চ মান ({value}) সিদ্ধান্তকে ইতিবাচকভাবে প্রভাবিত করেছে",
-                "negative_high": "{feature} এর মান ({value}) সিদ্ধান্তকে নেতিবাচকভাবে প্রভাবিত করেছে",
-            },
-            "summary": {"credit_approved": "আপনার ঋণ আবেদন অনুমোদিত হয়েছে। প্রধান কারণ: {factors}"},
-            "regulatory": {"compliance_note": "এই ব্যাখ্যা {regulator} নির্দেশিকা অনুসারে তৈয়ার"},
-        }
-
-    def _tamil_translations(self) -> Dict:
-        return {
-            "features": {
-                "annual_income": "ஆண்டு வருமானம்", "credit_history_months": "கடன் வரலாறு (மாதங்கள்)",
-                "existing_loans": "தற்போதைய கடன்கள்", "age": "வயது",
-            },
-            "decisions": {"APPROVED": "அங்கீகரிக்கப்பட்டது", "REJECTED": "நிராகரிக்கப்பட்டது"},
-            "explanations": {
-                "positive_high": "{feature} இன் உயர் மதிப்பு ({value}) முடிவை நேர்மறையாக பாதித்தது",
-                "negative_high": "{feature} இன் மதிப்பு ({value}) முடிவை எதிர்மறையாக பாதித்தது",
-            },
-            "summary": {"credit_approved": "உங்கள் கடன் விண்ணப்பம் அங்கீகரிக்கப்பட்டது. காரணிகள்: {factors}"},
-            "regulatory": {"compliance_note": "இந்த விளக்கம் {regulator} வழிகாட்டுதல்களின்படி தயாரிக்கப்பட்டது"},
-        }
-
-    def _telugu_translations(self) -> Dict:
-        return {
-            "features": {"annual_income": "వార్షిక ఆదాయం", "age": "వయసు", "existing_loans": "ఇప్పటికే ఉన్న రుణాలు"},
-            "decisions": {"APPROVED": "ఆమోదించబడింది", "REJECTED": "తిరస్కరించబడింది"},
-            "explanations": {
-                "positive_high": "{feature} యొక్క అధిక విలువ ({value}) నిర్ణయాన్ని సానుకూలంగా ప్రభావితం చేసింది",
-                "negative_high": "{feature} యొక్క విలువ ({value}) నిర్ణయాన్ని ప్రతికూలంగా ప్రభావితం చేసింది",
-            },
-            "regulatory": {"compliance_note": "ఈ వివరణ {regulator} మార్గదర్శకాల ప్రకారం తయారు చేయబడింది"},
-        }
-
-    def _marathi_translations(self) -> Dict:
-        return {
-            "features": {"annual_income": "वार्षिक उत्पन्न", "age": "वय", "existing_loans": "विद्यमान कर्ज"},
-            "decisions": {"APPROVED": "मंजूर", "REJECTED": "नाकारले"},
-            "regulatory": {"compliance_note": "हे स्पष्टीकरण {regulator} मार्गदर्शक तत्त्वांनुसार तयार केले आहे"},
-        }
-
-    def _gujarati_translations(self) -> Dict:
-        return {
-            "features": {"annual_income": "વાર્ષિક આવક", "age": "ઉંમર"},
-            "decisions": {"APPROVED": "મંજૂર", "REJECTED": "નામંજૂર"},
-            "regulatory": {"compliance_note": "આ સમજૂતી {regulator} માર્ગદર્શિકા અનુસાર તૈયાર કરવામાં આવી છે"},
-        }
-
-    def _kannada_translations(self) -> Dict:
-        return {
-            "features": {"annual_income": "ವಾರ್ಷಿಕ ಆದಾಯ", "age": "ವಯಸ್ಸು"},
-            "decisions": {"APPROVED": "ಅನುಮೋದಿಸಲಾಗಿದೆ", "REJECTED": "ತಿರಸ್ಕರಿಸಲಾಗಿದೆ"},
-            "regulatory": {"compliance_note": "ಈ ವಿವರಣೆಯನ್ನು {regulator} ಮಾರ್ಗಸೂಚಿಗಳ ಪ್ರಕಾರ ಸಿದ್ಧಪಡಿಸಲಾಗಿದೆ"},
-        }
-
-    def _malayalam_translations(self) -> Dict:
-        return {
-            "features": {"annual_income": "വാർഷിക വരുമാനം", "age": "വയസ്സ്"},
-            "decisions": {"APPROVED": "അംഗീകരിച്ചു", "REJECTED": "നിരസിച്ചു"},
-            "regulatory": {"compliance_note": "ഈ വിശദീകരണം {regulator} മാർഗ്ഗനിർദ്ദേശങ്ങൾ അനുസരിച്ച് തയ്യാറാക്കിയതാണ്"},
-        }
-
-    def _punjabi_translations(self) -> Dict:
-        return {
-            "features": {"annual_income": "ਸਾਲਾਨਾ ਆਮਦਨ", "age": "ਉਮਰ"},
-            "decisions": {"APPROVED": "ਮਨਜ਼ੂਰ", "REJECTED": "ਰੱਦ"},
-            "regulatory": {"compliance_note": "ਇਹ ਵਿਆਖਿਆ {regulator} ਦਿਸ਼ਾ-ਨਿਰਦੇਸ਼ਾਂ ਅਨੁਸਾਰ ਤਿਆਰ ਕੀਤੀ ਗਈ ਹੈ"},
-        }
-
-    def _urdu_translations(self) -> Dict:
-        return {
-            "features": {"annual_income": "سالانہ آمدنی", "age": "عمر"},
-            "decisions": {"APPROVED": "منظور", "REJECTED": "مسترد"},
-            "regulatory": {"compliance_note": "یہ وضاحت {regulator} ہدایات کے مطابق تیار کی گئی ہے"},
-        }
+    # ---- feature / decision naming -------------------------------------
 
     def translate_feature(self, feature: str, lang: str) -> str:
-        if lang == "en" or lang not in self.translations:
-            return feature.replace("_", " ").title()
-        return self.translations[lang].get("features", {}).get(feature, feature.replace("_", " ").title())
+        return i18n.text(lang, "FEATURES", feature,
+                         default=feature.replace("_", " ").title())
 
     def translate_decision(self, decision: str, lang: str) -> str:
-        if lang == "en" or lang not in self.translations:
-            return decision.replace("_", " ").title()
-        return self.translations[lang].get("decisions", {}).get(decision, decision.replace("_", " ").title())
+        return i18n.text(lang, "DECISIONS", decision,
+                         default=decision.replace("_", " ").title())
 
-    def translate_explanation(self, feature: str, value: float, contribution: float, lang: str) -> str:
-        translated_feature = self.translate_feature(feature, lang)
-        if lang == "en" or lang not in self.translations:
-            if contribution > 0.05:
-                return f"High value of {translated_feature} ({value}) positively influenced the decision"
-            elif contribution > 0:
-                return f"{translated_feature} made a minor positive contribution to the decision"
-            elif contribution < -0.05:
-                return f"Value of {translated_feature} ({value}) negatively influenced the decision"
-            else:
-                return f"{translated_feature} made a minor negative contribution to the decision"
+    def translate_domain(self, domain: str, lang: str) -> str:
+        return i18n.text(lang, "DOMAINS", domain,
+                         default=domain.replace("_", " ").title())
 
-        explanations = self.translations[lang].get("explanations", {})
+    def translate_regulator(self, regulator: str, lang: str) -> str:
+        return i18n.text(lang, "REGULATORS", regulator, default=regulator)
+
+    def translate_status(self, status: str, lang: str) -> str:
+        return i18n.text(lang, "STATUS", status,
+                         default=status.replace("_", " ").title())
+
+    # ---- per-feature contribution explanations -------------------------
+
+    @staticmethod
+    def _explanation_key(contribution: float) -> str:
+        """Pick the sentence template that matches sign and magnitude."""
         if contribution > 0.05:
-            template = explanations.get("positive_high", "{feature} ({value}) - positive impact")
-        elif contribution > 0:
-            template = explanations.get("positive_low", "{feature} - minor positive")
-        elif contribution < -0.05:
-            template = explanations.get("negative_high", "{feature} ({value}) - negative impact")
-        else:
-            template = explanations.get("negative_low", "{feature} - minor negative")
-        return template.format(feature=translated_feature, value=value)
+            return "positive_high"
+        if contribution > 0:
+            return "positive_low"
+        if contribution < -0.05:
+            return "negative_high"
+        return "negative_low"
 
-    def translate_summary(self, domain: str, decision: str, top_factors: list, lang: str) -> str:
-        factors_str = ", ".join([self.translate_feature(f, lang) for f in top_factors[:3]])
-        if lang == "en" or lang not in self.translations:
-            return f"Decision: {decision.replace('_', ' ').title()}. Key factors: {factors_str}"
-        summaries = self.translations[lang].get("summary", {})
-        if "approved" in decision.lower():
-            key = "credit_approved"
-        elif "rejected" in decision.lower() or "declined" in decision.lower():
-            key = "credit_rejected"
-        else:
-            key = "credit_review"
-        template = summaries.get(key, f"निर्णय: {{factors}}")
-        return template.format(factors=factors_str)
+    def translate_explanation(self, feature: str, value: float,
+                              contribution: float, lang: str) -> str:
+        template = i18n.text(lang, "EXPLANATION", self._explanation_key(contribution))
+        return template.format(feature=self.translate_feature(feature, lang),
+                               value=value)
+
+    # ---- overall decision summary --------------------------------------
+
+    # Maps (domain, decision) onto a summary template key. Explicit rather
+    # than substring-matching on the decision string, which previously caused
+    # insurance and healthcare decisions to fall through to credit wording.
+    _SUMMARY_KEYS = {
+        ("credit_scoring", "APPROVED"): "credit_approved",
+        ("credit_scoring", "REJECTED"): "credit_rejected",
+        ("credit_scoring", "REVIEW_REQUIRED"): "credit_review",
+        ("insurance_underwriting", "STANDARD_PREMIUM"): "insurance_standard",
+        ("insurance_underwriting", "LOADED_PREMIUM"): "insurance_loaded",
+        ("insurance_underwriting", "DECLINED"): "insurance_declined",
+        ("healthcare", "HIGH_RISK_INTERVENTION"): "health_high",
+        ("healthcare", "MODERATE_RISK_MONITORING"): "health_moderate",
+        ("healthcare", "LOW_RISK_ROUTINE"): "health_low",
+    }
+
+    def translate_summary(self, domain: str, decision: str,
+                          top_factors: List[str], lang: str) -> str:
+        factors = ", ".join(self.translate_feature(f, lang) for f in top_factors[:3])
+        key = self._SUMMARY_KEYS.get((domain, decision))
+        if key is None:
+            # Unknown pairing: state the decision plainly rather than
+            # mislabelling it with another domain's wording.
+            return f"{self.translate_decision(decision, lang)}: {factors}"
+        return i18n.text(lang, "SUMMARY", key).format(factors=factors)
+
+    # ---- regulatory notes ----------------------------------------------
 
     def get_compliance_note(self, regulator: str, lang: str) -> str:
-        if lang == "en" or lang not in self.translations:
-            return f"This explanation is prepared in compliance with {regulator} guidelines on AI explainability"
-        regulatory = self.translations[lang].get("regulatory", {})
-        template = regulatory.get("compliance_note", "Compliance: {regulator}")
-        return template.format(regulator=regulator)
+        return i18n.text(lang, "REPORT", "compliance_note").format(
+            regulator=self.translate_regulator(regulator, lang))
 
-    def get_supported_languages(self) -> Dict:
-        return {
-            "en": "English", "hi": "हिन्दी (Hindi)", "bn": "বাংলা (Bengali)",
-            "ta": "தமிழ் (Tamil)", "te": "తెలుగు (Telugu)", "mr": "मराठी (Marathi)",
-            "gu": "ગુજરાતી (Gujarati)", "kn": "ಕನ್ನಡ (Kannada)", "ml": "മലയാളം (Malayalam)",
-            "pa": "ਪੰਜਾਬੀ (Punjabi)", "or": "ଓଡ଼ିଆ (Odia)", "as": "অসমীয়া (Assamese)",
-            "ur": "اردو (Urdu)", "sa": "संस्कृतम् (Sanskrit)", "ks": "कॉशुर (Kashmiri)",
-            "sd": "سنڌي (Sindhi)", "kok": "कोंकणी (Konkani)", "doi": "डोगरी (Dogri)",
-            "mni": "মৈতৈলোন্ (Manipuri)", "brx": "बड़ो (Bodo)",
-            "sat": "ᱥᱟᱱᱛᱟᱲᱤ (Santhali)", "mai": "मैथिली (Maithili)",
-        }
+    # ---- language metadata ---------------------------------------------
+
+    def get_supported_languages(self) -> Dict[str, str]:
+        """
+        Code -> display label, for populating a picker.
+
+        Labels combine the native name with the English name so a user who
+        cannot read the target script can still find their language.
+        """
+        out = {}
+        for code in i18n.available():
+            meta = i18n.meta(code)
+            native, english = meta.get("name_native", code), meta.get("name_en", code)
+            out[code] = native if native == english else f"{native} ({english})"
+        return out
+
+    def get_language_details(self) -> Dict:
+        """Full metadata including script, direction and translation coverage."""
+        return i18n.catalog_summary()
+
+    def is_rtl(self, lang: str) -> bool:
+        return i18n.is_rtl(lang)
+
+    def ui_strings(self, lang: str) -> Dict[str, str]:
+        """UI label bundle for the frontend, English-filled where untranslated."""
+        return i18n.section(lang, "UI")
 
 
 translation_service = TranslationService()
