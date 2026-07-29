@@ -91,15 +91,20 @@ _SOURCE_REQUIRED = {"id", "title", "status", "verification"}
 _SOURCE_OPTIONAL = {"dated", "reference", "url", "note", "supersedes", "superseded_by"}
 
 _FIELD_REQUIRED = {"key", "label", "scope", "type", "required", "source"}
-_FIELD_OPTIONAL = {"source_locator", "verification", "description",
-                   "label_i18n_key", "values", "validation", "note",
-                   "customer_facing"}
+# `source_section` is the coarse, durable locator (a chapter or part label);
+# `source_locator` is the fine, volatile one (a paragraph number). They are kept
+# separate because an amendment renumbers paragraphs far more often than it
+# restructures chapters, so change monitoring can still match a field to its
+# home in the instrument after a renumbering.
+_FIELD_OPTIONAL = {"source_section", "source_locator", "verification",
+                   "description", "label_i18n_key", "values", "validation",
+                   "note", "customer_facing"}
 
 _VALIDATION_OPTIONAL = {"non_empty", "min_length", "must_reference", "max_length"}
 
 _RULE_REQUIRED = {"id", "kind", "severity", "description", "source"}
-_RULE_OPTIONAL = {"affects", "source_locator", "verification", "note",
-                  "message"} | _RULE_BODY_KEYS
+_RULE_OPTIONAL = {"affects", "source_section", "source_locator", "verification",
+                  "note", "message"} | _RULE_BODY_KEYS
 
 _REVIEW_OPTIONAL = {"last_reviewed", "reviewed_by", "next_review_due", "note"}
 

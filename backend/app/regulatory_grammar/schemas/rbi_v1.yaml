@@ -1,0 +1,239 @@
+# =============================================================================
+# RBI - Digital lending, credit decisions
+#
+# Source: Reserve Bank of India (Digital Lending) Directions, 2025
+#         dated 8 May 2025, which repealed the Guidelines on Digital Lending
+#         (RBI/2022-23/111, DOR.CRE.REC.66/21.07.001/2022-23, 2 Sept 2022).
+#
+# Paragraph numbers below were supplied as verified against the 2025 Directions
+# text. All four obligations sit in Chapter III, "Conduct and Customer
+# Protection Requirements".
+#
+# -----------------------------------------------------------------------------
+# READ THIS BEFORE ADDING FIELDS
+#
+# There is NO adverse-action reason-code requirement in RBI's digital lending
+# framework, and no rejection-reason disclosure obligation. An earlier draft of
+# this schema was to carry a `rejection_reason` field, mandatory below a
+# 2,00,000 rupee loan amount. That was checked against the 2025 Directions and
+# NO SUCH FIELD OR THRESHOLD EXISTS. It is recorded in `notes` below so it does
+# not get reintroduced from a secondary summary.
+#
+# Consequence worth understanding: this schema does not make a credit REJECTION
+# explainable to the borrower in RBI's own terms, because RBI does not require
+# that. It evidences how creditworthiness was assessed (auditably), how to
+# complain, and where the loan terms are stated. A borrower-facing reason for
+# refusal is a DPDP Act / voluntary matter, not an RBI one. Do not let a
+# scorecard built on this schema imply otherwise.
+# =============================================================================
+
+schema_id: rbi_v1
+schema_version: 1
+
+regulator:
+  code: RBI
+  # `name` is a fallback only; the report resolves the display name through the
+  # i18n REGULATORS catalog so it renders in the reader's language.
+  name: Reserve Bank of India
+  name_i18n_key: RBI
+
+regulator_status: in_force
+
+applies_to:
+  domains: [credit_scoring]
+  # `decisions` is deliberately omitted, which means "every decision".
+  #
+  # These obligations are not adverse-decision-specific: the assessment must be
+  # captured before extending ANY loan, and the grievance route exists
+  # regardless of outcome. Restricting this schema to REJECTED would wrongly
+  # imply the duties switch off on approval.
+  #
+  # The one field that genuinely is outcome-dependent is key_fact_statement_ref,
+  # handled by the conditional rule below rather than by narrowing the schema.
+  note: >
+    Applies to every credit_scoring decision. Field-level applicability that
+    depends on the outcome is expressed as a conditional rule, not by
+    restricting this schema to a subset of decisions.
+
+sources:
+  - id: rbi_dl_2025
+    title: Reserve Bank of India (Digital Lending) Directions, 2025
+    dated: 2025-05-08
+    status: in_force
+    verification: primary_verified
+    supersedes: >
+      Guidelines on Digital Lending, RBI/2022-23/111,
+      DOR.CRE.REC.66/21.07.001/2022-23, dated 2 September 2022.
+    note: |
+      Paragraph numbers supplied by the compliance owner as verified against the
+      2025 Directions text.
+
+      Caveat for the next author: the *wording* quoted in the field descriptions
+      below was read from the repealed 2022 circular, where the substance of all
+      four obligations appeared at paras 7.1, 6.1, 6.2 and 5.2 respectively. The
+      2025 paragraph numbers are trusted; the exact 2025 phrasing has not been
+      compared word for word. If you are relying on precise wording rather than
+      substance, check the 2025 text before quoting it.
+
+fields:
+
+  # ---------------------------------------------------------------------------
+  - key: borrower_assessment_basis
+    label: Basis of creditworthiness assessment
+    scope: per_decision
+    type: text
+    required: true
+    # NOT a disclosure obligation. Chapter III para 7(i) requires the economic
+    # profile to be CAPTURED in an auditable way; it does not require it to be
+    # communicated to the borrower. Marked internal so the renderer files it
+    # under the audit layer and does not present it as a borrower disclosure.
+    customer_facing: false
+    source: rbi_dl_2025
+    source_section: Chapter III - Conduct and Customer Protection Requirements
+    source_locator: Para 7(i)
+    verification: primary_verified
+    description: >
+      The economic profile captured for this borrower before the credit
+      decision, sufficient to evidence how creditworthiness was assessed. Age,
+      occupation and income are the named minimum; the source list is not
+      exhaustive, so additional inputs may be recorded and this field should
+      reflect what was actually used.
+    validation:
+      non_empty: true
+      # The three inputs named in the source. `must_reference` is a completeness
+      # check on the assembled field, not a claim that these are the only
+      # permitted inputs.
+      must_reference: [age, occupation, income]
+    note: >
+      The phrase "in an auditable way" in the source is the hook for the
+      immutable audit record in Feature 3. This field is what that record has to
+      be able to reproduce.
+
+  # ---------------------------------------------------------------------------
+  - key: grievance_officer_contact
+    label: Grievance redressal officer
+    scope: per_entity
+    type: reference
+    required: true
+    customer_facing: true
+    source: rbi_dl_2025
+    source_section: Chapter III - Conduct and Customer Protection Requirements
+    source_locator: Para 11(i)-(ii)
+    verification: primary_verified
+    description: >
+      Identity and contact details of the nodal grievance redressal officer
+      designated to handle digital lending complaints, resolvable to a name,
+      designation, address and telephone number held in deployment config.
+    validation:
+      non_empty: true
+    note: >
+      per_entity, not per_decision: the officer is a property of the regulated
+      entity, so it is read from deployment configuration and is identical
+      across every decision that entity issues.
+
+  # ---------------------------------------------------------------------------
+  - key: grievance_escalation_path
+    label: Escalation route for unresolved complaints
+    scope: per_entity
+    type: text
+    required: true
+    customer_facing: true
+    source: rbi_dl_2025
+    source_section: Chapter III - Conduct and Customer Protection Requirements
+    source_locator: Para 11(iv)
+    verification: primary_verified
+    description: >
+      Statement that a complaint left unresolved by the regulated entity beyond
+      the stipulated period may be escalated to the Reserve Bank's Complaint
+      Management System under the Reserve Bank - Integrated Ombudsman Scheme.
+    validation:
+      non_empty: true
+    note: |
+      Two reasons this is per_entity rather than a fixed string:
+
+      1. The 2022 text qualified the 30-day period as "currently 30 days", so
+         the number is expected to move. Do not hardcode it here.
+      2. The same text carved out entities not covered by RB-IOS, which escalate
+         by a different route. A single hardcoded sentence would be wrong for
+         those deployments.
+
+      Both points were read in the repealed 2022 text and should be re-checked
+      against the 2025 Directions.
+
+  # ---------------------------------------------------------------------------
+  - key: key_fact_statement_ref
+    label: Key Fact Statement reference
+    scope: per_decision
+    type: reference
+    # Required only where a loan is actually extended - see the conditional rule
+    # below. Declared false here so that an approval-only obligation is not
+    # reported as a gap on every rejection.
+    required: false
+    customer_facing: true
+    source: rbi_dl_2025
+    source_section: Chapter III - Conduct and Customer Protection Requirements
+    source_locator: Para 8(i), Para 8(iv)
+    verification: primary_verified
+    description: >
+      Reference to the Key Fact Statement issued for this loan, in which the
+      annual percentage rate, tenor, repayment obligations, penal charges,
+      cooling-off period and grievance officer details are disclosed.
+    validation:
+      non_empty: true
+    note: >
+      The KFS is a document reference, not the terms themselves. This schema
+      records where the borrower was given the terms; it does not restate them,
+      and it must not be treated as evidence that the KFS contents were correct.
+
+rules:
+
+  - id: kfs_required_when_loan_extended
+    kind: conditional_requirement
+    severity: high
+    description: >
+      The Key Fact Statement reference is mandatory where the decision results
+      in a loan being extended, and not applicable where no contract is
+      executed.
+    source: rbi_dl_2025
+    source_section: Chapter III - Conduct and Customer Protection Requirements
+    source_locator: Para 8(i)
+    # NOT primary_verified, because the conditionality is an inference.
+    verification: secondary_only
+    affects: [key_fact_statement_ref]
+    when:
+      decision_in: [APPROVED]
+    requires: [key_fact_statement_ref]
+    note: |
+      FLAG FOR CONFIRMATION. The source requires the KFS before execution of the
+      contract. It does not say in terms "only on approval" - that a rejected
+      application has no contract and therefore no KFS is my reading, not the
+      instrument's words.
+
+      This is the only conditional requirement in this schema. It replaces the
+      2,00,000 rupee threshold conditional from the original brief, which was
+      found not to exist.
+    message: >
+      Decision approved but no Key Fact Statement reference recorded.
+
+notes: |
+  Deliberate omissions, recorded so they are not reintroduced:
+
+  - rejection_reason: no such field. RBI's digital lending framework contains no
+    adverse-action reason-code taxonomy and no rejection-reason disclosure
+    obligation. Verified against the 2025 Directions.
+
+  - 2,00,000 rupee threshold: does not exist. It appeared in a secondary summary
+    and is absent from both the 2025 Directions and the repealed 2022 circular.
+
+  Scope of this schema: three customer-facing disclosures (grievance officer,
+  escalation route, Key Fact Statement) and one internal auditability
+  obligation (assessment basis). It does not, and under this framework cannot,
+  evidence a borrower-facing reason for refusal.
+
+review:
+  last_reviewed: 2026-07-28
+  reviewed_by: compliance owner (paragraph numbers), Kiro (schema construction)
+  note: >
+    Re-check on any amendment to the 2025 Directions. Chapter III is the durable
+    anchor; paragraph numbers are the volatile part and are held separately in
+    source_locator for that reason.
